@@ -1,5 +1,5 @@
 ================
-TinTin++ Scripts
+TinTin++ Modules
 ================
 The included modules are super alpha and currently for demonstration purposes only.
 
