@@ -1,0 +1,76 @@
+#nop modules/opt/msp/module.tin;
+
+/*
+    Author:         Nathan Farrar
+    Email:          nathan.farrar@gmail.com
+    Website:        http://github.com/nfarrar/TinNM/
+
+    Dependencies:   None
+
+    Description
+    -----------
+
+    References
+    ----------
+    MSP Script:                         http://tintin.sourceforge.net/scripts/msp.php
+    Background Ambience:                http://tintin.sourceforge.net/board/viewtopic.php?t=1768
+*/
+
+#class {opt/msp} {kill};
+#class {opt/msp} {open};
+
+#var {vMSPSoundDirectory} {sounds};
+#var {vMSPSoundOn} {False};
+
+#nop TELNET negotiation.;
+#event {IAC WILL MSP} {
+    #send {\xFF\xFD\x5A\};
+    #unevent {IAC WILL MSP}
+}
+
+#nop Parse MSP Commands.;
+#act {^!!SOUND({\S*}{.*})$} {
+    sound play %1;
+    #line gag
+}
+
+#nop I can't be bothered adding support for background music.;
+#act {^!!MUSIC({\S*}{.*})$} {
+    #line gag
+}
+
+#alias {msp} {sound};
+
+#alias {sound} {
+    #switch {"%1"} {
+        #case {"enable"}  {aMSPNull};
+        #case {"disable"} {aMSPNull};
+        #case {"play"}    {aMSPNull};
+        #case {"help"}    {aMSPHelp};
+        #default          {aMSPHelp};
+    };
+};
+
+#tab {sound play};
+#tab {sound help};
+
+#nop Enable sounds.;
+#alias {aMSPEnable} {
+    #showme {<aef>MSP: <faa>Enabling sound support.};
+    #var {vMSPSoundOn} {True};
+};
+
+#nop Disable sounds.;
+#alias {aMSPDisable} {
+    #showme {<aef>MSP: <faa>Disabling sound support.};
+    #var {vMSPSoundOn} {False};
+};
+
+#nop Play a sound.;
+#alias {aMSPPlay %1} {
+    #if {"$vMSPSoundOn" == "True"} {
+        #system play $vMSPSoundDirectory/%1 &>/dev/null &
+    };
+};
+
+#class {opt/msp} {close};

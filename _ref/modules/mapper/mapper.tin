@@ -1,0 +1,260 @@
+#nop modules/core/map/module.tin;
+
+/*
+    Author:         Nathan Farrar
+    Email:          nathan.farrar@gmail.com
+    Website:        http://github.com/nfarrar/TinNM/
+
+    Dependencies:   lib/colour
+                    lib/map
+                    lib/message
+
+    Description
+    -----------
+    The map module extends the built-in map features.
+
+    References
+    ----------
+    TinTin Manpage:                     http://tintin.sourceforge.net/manual/map.php
+    Room Info Parsing:                  http://tintin.sourceforge.net/board/viewtopic.php?t=1961
+    Stepper Bot:                        http://tintin.sourceforge.net/board/viewtopic.php?t=782
+    Mapping Complex Rooms:              http://tintin.sourceforge.net/board/viewtopic.php?t=2020
+    Map Find Roomdata:                  http://tintin.sourceforge.net/board/viewtopic.php?t=1920
+    Error handling with map run         http://tintin.sourceforge.net/board/viewtopic.php?t=1917
+    Map File Format:                    http://tintin.sourceforge.net/board/viewtopic.php?t=1762
+    Ascii & MudFonts                    http://tintin.sourceforge.net/board/viewtopic.php?t=1803
+    Maps in Log Files                   http://tintin.sourceforge.net/board/viewtopic.php?t=1763
+    Auto Exploring                      http://tintin.sourceforge.net/board/viewtopic.php?t=1728
+    Map unloaded                        http://tintin.sourceforge.net/board/viewtopic.php?t=981
+    TF Mappper                          http://tintin.sourceforge.net/board/viewtopic.php?t=2006
+    The Argon Mud Mapper                http://tintin.sourceforge.net/board/viewtopic.php?t=696
+                                        http://tintin.sourceforge.net/board/viewtopic.php?t=1108
+*/
+
+#class {core/map} {kill};
+#class {core/map} {open};
+
+#nop Declare the root variable for this module in the module class, so that    ;
+#nop when this module is unloaded, all associated variables will be destroyed. ;
+
+#var {map} {};
+
+#nop Interface for utilizing the core/map module.                              ;
+
+#alias {map}
+{
+    #switch {"%1"}
+    {
+        #case {"create"}    {mapCreate};
+        #case {"load"}      {mapLoad};
+        #case {"save"}      {mapSave};
+        #case {"show"}      {mapShow};
+        #case {"hide"}      {mapHide};
+        #default
+        {
+            message {MAP} {ERROR} {Usage: map { kill | list | load | reload }};
+        };
+    };
+};
+
+#tab {map};
+#tab {mapLoad};
+#tab {mapClose};
+#tab {mapSave};
+#tab {mapShow};
+#tab {mapHide};
+
+#nop Map module initialization.                                                ;
+
+#alias {mapModuleInit}
+{
+    message {MAP} {DEBUG} {mapModuleInit: Initializing core/map.};
+
+    #nop Load the configuration.                                               ;
+    libConfigLoad {map.tin};
+
+    #nop Initialize the current map flags.                                     ;
+
+    #var {map.current}
+    {
+        {name}      {false}
+        {path}      {false}
+        {loaded}    {false}
+        {displayed} {false}
+        {saved}     {false}
+        {lastSave}  {false}
+    };
+
+#nop Cleanup map module when unloading.                                        ;
+
+#alias {mapModuleKill}
+{
+    message {MAP} {DEBUG} {mapModuleKill: Cleaning up core/map.};
+
+    #if {"${map.current.displayed}" == "true"}
+    {
+        mapHide;
+    };
+
+    #if {"${map.current.loaded}" == "true"}
+    {
+        mapClose;
+    };
+
+    #unvar {map};
+};
+
+#nop Create a new map.                                                         ;
+
+#alias {mapCreate}
+{
+    message {MAP} {DEBUG} {mapCreate: Not yet implimented.};
+};
+
+#nop Load a map file. Has one optional argument, the name of the map. If the   ;
+#nop name is not specified, the default value will be used.                    ;
+
+#alias {mapLoad}
+{
+    #if {"${map.current.loaded}" == "true"}
+    {
+        message {MAP} {ERROR} {mapLoad: Cannot load new map, ${map.current.name} is already loaded.};
+    };
+    #else
+    {
+        #if {"%1" == ""}
+        {
+            #var {mapLoad.name} {${map.conf.name}};
+        };
+        #else
+        {
+            #var {mapLoad.name} {%1};
+        };
+
+        #var {mapLoad.path} {${map.conf.dir}${mapLoad.name}};
+
+        #if {"@isFile{${mapLoad.path}}" != "true"}
+        {
+            message {MAP} {ERROR} {mapLoad: Cannot load map, the map ${mapLoad.path} does not exist.};
+        };
+        #else
+        {
+            message {MAP} {INFO} {mapLoad: Loading map file ${mapLoad.path}.};
+
+            #var {map.current.loaded} {true};
+            #var {map.current.name}   {${mapLoad.name}};
+            #var {map.current.path}   {${mapLoad.path}};
+            #var {map.current.saved}  {true};
+
+            #nop Update the lastSave value.;
+
+            #map {read} {${map.current.path}};
+        };
+    };
+    #unvar {mapLoad};
+};
+
+#nop Save the the loaded map file.                                             ;
+
+#alias {mapSave}
+{
+    #if {"${map.current.loaded}" == "false"}
+    {
+        message {MAP} {ERROR} {mapSave: Cannot save map file, no map is loaded.};
+    };
+    #else
+    {
+        message {MAP} {INFO} {mapSave: Saving ${map.current.name} to ${map.current.path}\.};
+
+        #map {write} {${map.current.path}};
+
+        #nop Update the lastSave value.;
+    };
+};
+
+#nop Close the current map file.                                               ;
+
+#alias {mapClose}
+{
+    #if {"${map.current.loaded}" == "false"}
+    {
+        message {MAP} {ERROR} {mapClose: No map is loaded, nothing to close.};
+    };
+    #else
+    {
+        #if {"${map.display}" == "true"}
+        {
+            message {MAP} {DEBUG} {mapClose: Disabling map display.};
+
+            mapDisplayDisable;
+        };
+
+        message {MAP} {INFO} {mapClose: Closing the map file ${map.name}.};
+
+        #map {destroy};
+        #var {map.current.loaded}   {false};
+        #var {map.current.name}     {false};
+        #var {map.current.path}     {false};
+        #var {map.current.saved}    {false};
+        #var {map.current.lastSave} {false};
+    };
+};
+
+#nop Display the map.                                                          ;
+
+#alias {mapShow}
+{
+    #if {"${map.current.loaded}" == "false"}
+    {
+        message {MAP} {ERROR} {mapShow: Cannot enable the map display, no map is loaded.};
+    };
+    #else
+    {
+        #if {"${map.current.displayed}" == "true"}
+        {
+            message {MAP} {ERROR} {mapShow: The map display is already enabled.};
+        };
+        #else
+        {
+            message {MAP} {INFO} {mapShow: Enabling the map display.};
+
+            #nop Add support for advanced UI.;
+
+            #var {map.current.displayed} {true};
+
+            #nop Add support for size configuration values.;
+
+            #map {flag} {vtmap} {on};
+            #split {32} {1};
+            #map {goto} {1};
+        };
+    };
+};
+
+#nop Hide the map.                                                             ;
+
+#alias {mapHide}
+{
+    #if {"${map.current.displayed}" == "false"}
+    {
+        message {MAP} {ERROR} {mapHide: Cannot show map, no map is loaded.};
+    };
+    #else
+    {
+        message {MAP} {INFO} {mapShow: Disabling the map display.};
+
+        #var {map.current.displayed} {false};
+        #map {flag} {vtmap} {off};
+        #unsplit;
+
+        #nop If we have our prompt displayed using a #split, re-enabling the   ;
+        #nop the prompt split.                                                 ;
+
+        #if {"${prompt.current.enabled}" == "true"
+        {
+            #split;
+        };
+    };
+};
+
+#class {core/map} {close};

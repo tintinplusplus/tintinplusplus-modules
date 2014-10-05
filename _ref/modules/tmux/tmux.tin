@@ -1,0 +1,252 @@
+#nop modules/opt/ui/module.tin;
+
+/*
+    Author:         Nathan Farrar
+    Email:          nathan.farrar@gmail.com
+    Website:        http://github.com/nfarrar/TinNM/
+
+    Dependencies:   lib/colours
+                    lib/message
+                    lib/terminal
+
+    Description
+    -----------
+    An optional, advanced user interface module. This module builds the
+    interface using bash, tmux, and netcat.
+
+    This is automatically loaded when TinNM is run inside a tmux session.
+
+    References
+    ----------
+    Tmux / TinTin Example              http://tintin.sourceforge.net/board/viewtopic.php?t=2072
+    TinTin++ in tmux                   http://tintin.sourceforge.net/board/viewtopic.php?t=1709
+    Logging Example:                   http://tintin.sourceforge.net/board/viewtopic.php?t=1775
+    Multiple Terminal Script           http://tintin.sourceforge.net/board/viewtopic.php?t=1759
+    Netcat Sessions:                   http://tintin.sourceforge.net/board/viewtopic.php?t=1504
+
+*/
+
+#class {opt/ui} {kill};
+#class {opt/ui} {open};
+
+#nop Initialize the ui module on load.                                         ;
+
+#alias {uiModuleInit}
+{
+    #if { "@inTmuxSession{}" == "false" }
+    {
+        message {UI} {DEBUG} {uiModuleInit: tmux session detected.};
+
+    };
+    #else
+    {
+        message {UI} {DEBUG} {uiModuleInit: tmux session not detected.};
+
+        #var {ui}
+        {
+            {enabled}       {true};
+            {width}         {@getTerminalWidth{}};
+            {height}        {@getTerminalHeight{}};
+            {numWindows}    {1}
+        };
+
+        #nop Initialize the main window configuration.                         ;
+
+        #var {ui.windows.main}
+        {
+            {command} {./tinnm -t}
+            {pane}    {0}
+            {width}   {$ui[width]}
+            {height}  {$ui[height]}
+        };
+
+        #nop Set selectedWindow to main. This value is not updated when        ;
+        #nop navigating panes directly with tmux. For regular use, this value  ;
+        #nop should always be set to main.                                     ;
+
+        #var {ui.selectedWindow} {main};
+    };
+};
+
+#alias {uiModuleKill}
+{
+    message {UI} {DEBUG} {uiModuleKill: Cleaning up opt/ui module.};
+    #unvar {ui};
+};
+
+#alias {uiSelectWindow}
+{
+    #if {"%1" == ""}
+    {
+        message {UI} {ERROR} {Usage: selectUIWindow {name}};
+    };
+    #else
+    {
+        #if {&ui[windows][%1] == 0} {
+            message {UI} {ERROR} {%1 is not a valid window name.};
+        };
+        #else
+        {
+            #system {tmux select-pane -t $ui[windows][%1][pane]};
+            #var {ui.selectedWindow} {%1};
+        };
+    };
+};
+
+#nop Create a new window and then update the dimensions of all windows.        ;
+
+#alias {uiCreateWindow}
+{
+    #if {"%1" == "" || "%2" == "" || "%3" == "" || "%4" == "" || "%5" == "" }
+    {
+        message {UI} {ERROR} {Usage: createUIWindow {name} {command} {parent} {-v | -h} {size}};
+    };
+    #else
+    {
+        #nop Add the window entry to the windows list. After creating the      ;
+        #nop we'll update the height and width of all windows.                 ;
+
+        #var {createUIWindow.name} {%1};
+        #var {ui.windows[$createUIWindow[name]]}
+        {
+            {command} {%2}
+            {parent}  {%3}
+            {pane}    {$ui[numWindows]}
+        };
+
+        #nop Update the window count.                                          ;
+
+        #math {ui.numWindows} {$ui[numWindows] + 1};
+
+        #nop Select the parent window, create the split, then reselect the     ;
+        #nop main window.                                                      ;
+
+        selectUIWindow {%3};
+        #system {tmux split-window %4 -l %5 "%2"};
+        selectUIWindow {main};
+
+        #nop Update the dimensions of all windows.                             ;
+
+        updateUIWindowSizes;
+
+    };
+};
+
+#nop Create the map window. Set the window width to the terminal width - 120.  ;
+#nop This leaves our main window 120 columns wide.                             ;
+
+#alias {uiCreateMapWindow}
+{
+    message {UI} {INFO} {Creating the UI map window ...};
+    #math {createUIMapWindow.width} {$ui[width] - 120};
+    createUIWindow {map} {tail -f tmp/map.txt} {main} {-h} {$createUIMapWindow[width]};
+};
+
+#nop Update the dimensions of a specific window.                               ;
+
+#alias {uiUpdateWindowSize}
+{
+    #if {"%1" == ""}
+    {
+        message {UI} {ERROR} {Usage: updateUIWindowSize {name}};
+    };
+    #else
+    {
+        #if {&ui[windows][%1] == 0}
+        {
+            message {UI} {ERROR} {%1 is not a valid window name.};
+        };
+        #else
+        {
+            message {UI} {INFO} {Updating the size of window %1};
+            #var {$ui[windows][%1][width]}   {@getPaneWidth{$ui[windows][%1][pane]}};
+            #var {$ui[windows][%1][height]}  {@getPaneHeight{$ui[windows][%1][pane]}};
+        };
+    };
+};
+
+#nop Update the window sizes.                                                  ;
+
+#alias {uiUpdateWindowSizes}
+{
+    #foreach {$ui[windows][]} {updateUIWindowSizes.name}
+    {
+        updateUIWindowSize {$updateUIWindowSizes[name]};
+    };
+};
+
+#nop Display information about the specified window.                           ;
+
+#alias {uiShowWindowDetails}
+{
+    #if {"%1" == ""}
+    {
+        message {UI} {ERROR} {Usage: showUIWindowDetails {name}};
+    };
+    #else
+    {
+        #if {&ui[windows][%1] == 0} {
+            message {UI} {ERROR} {%1 is not a valid window name.};
+        };
+        #else
+        {
+            message {UI} {INFO} {Name:              %1};
+            message {UI} {INFO} {Command:           $ui[windows][%1][command]};
+            message {UI} {INFO} {Pane Index:        $ui[windows][%1][paneIndex]};
+            message {UI} {INFO} {Width:             $ui[windows][%1][width]};
+            message {UI} {INFO} {Height:            $ui[windows][%1][height]};
+        };
+    };
+};
+
+#nop Display a list of the windows.                                            ;
+
+#alias {uiShowWindowList}
+{
+    #foreach {$ui[windows][]} {showUIWindowList.name}
+    {
+        message {UI} {INFO} {Window: $showUIWindowList[name]};
+    };
+};
+
+#nop Kill a window using the window name.                                      ;
+
+#alias {uiKillWindow}
+{
+    #if {"%1" == ""}
+    {
+        message {UI} {ERROR} {Usage: killUIWindow {name}};
+    };
+    #else
+    {
+        #if {&ui[windows][%1] == 0}
+        {
+            message {UI} {ERROR} {%1 is not a valid window name.};
+        };
+        #else
+        {
+            message {UI} {INFO} {Killing window: %1.};
+
+            #system {tmux kill-pane -t $ui[windows][%1][pane]};
+            #math {ui.numWindows} {$ui[numWindows] - 1};
+
+        };
+    };
+};
+
+#nop Kill all the windows except main. This alias is used by the               ;
+#nop PROGRAM TERMINATION hook to kill all the open panes when tintin is        ;
+#nop terminated.                                                               ;
+
+#alias {uiKillWindows}
+{
+    #foreach {$ui[windows][]} {killUIWindows.name}
+    {
+        #if {"$killUIWindows[name]" != "main"}
+        {
+            killUIWindow $killUIWindows[name];
+        };
+    };
+};
+
+#class {opt/ui} {close};

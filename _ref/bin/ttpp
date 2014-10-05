@@ -1,0 +1,81 @@
+#!/usr/bin/env bash
+
+#/ TinTin++ Launcher
+#/ Usage: ttrc [<options>]
+#/
+#/ Options:
+#/ -p <profile>     - use the specified profile
+#/ -u               - enable the tmux ui
+#/ -t <filename>    - execute the specified file in testing context
+#/ -v               - enable verbose messages
+#/ -d               - enable debugging
+#/ -s               - show splash
+#/ -h               - display this help message.
+
+
+# --- [ META ] ----------------------------------------------------------------
+
+set -o nounset
+set -o pipefail
+set -o errexit
+set -o noclobber
+shopt -s extglob
+shopt -s extdebug
+IFS=$'\n\t'
+
+SCRIPTPATH=$(realpath $BASH_SOURCE)
+SCRIPTNAME=$(basename $SCRIPTPATH)
+MUDBASEPATH=$(dirname $(dirname $SCRIPTPATH))
+
+
+# --- [ OPTIONS ] -------------------------------------------------------------
+
+
+# Initialize default options.
+TTCMD='tt++'
+PROFILE='guest'
+TESTFILE=0
+TMUXUI=0
+VERBOSE=0
+DEBUG=0
+SPLASH=0
+
+# Display the usage message.
+function usage() {
+    grep '^#/' <"$0" | cut -c4-
+}
+
+
+# Parse the command line options.
+while getopts "p:t:uvdh" OPTION; do
+    case $OPTION in
+        p) PROFILE="$OPTARG";;
+        t) TESTFILE="$OPTARG";;
+        u) export TT_TMUX=1;;
+        v) export TT_VERBOSE=1;;
+        d) export TT_DEBUG=1;;
+        s) SPLASH=1;;
+        h) usage; exit 0;;
+        ?) usage; exit 1;;
+    esac
+done
+
+# --- [ MAIN ] ----------------------------------------------------------------
+
+if [[ $VERBOSE -eq 1 ]]; then
+    TTCMD="$TTCMD -v"
+fi
+
+if [[ $SPLASH -eq 0 ]]; then
+    TTCMD="$TTCMD -G"
+fi
+
+PROFILEPATH="$MUDBASEPATH/profiles/$PROFILE/__init__.tin"
+if [[ -f $PROFILEPATH ]]; then
+    TTCMD="$TTCMD -r $PROFILEPATH"
+else
+    echo "The profile $PROFILE does not exist."
+    exit 1
+fi
+
+cd $MUDBASEPATH && eval $TTCMD
