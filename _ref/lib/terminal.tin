@@ -1,0 +1,98 @@
+#nop lib/terminal.tin;
+
+/*
+    Author:         Nathan Farrar
+    Email:          nathan.farrar@gmail.com
+    Website:        http://github.com/nfarrar/TinNM/
+
+    Dependencies:   None
+
+    Description
+    -----------
+    Helper utilities for working with terminal sessions and tmux.
+
+    References
+    ----------
+    Check if tmux is installed:         http://unix.stackexchange.com/a/10690
+    Checking if tmux is running:        http://unix.stackexchange.com/a/10690
+    Get terminal window size:           http://stackoverflow.com/a/263900/212343
+
+*/
+
+#class {lib/tmux} {kill};
+#class {lib/tmux} {open};
+
+#nop Test If tmux is installed.                                                ;
+
+#function {tmuxIsInstalled}
+{
+    #script {tmuxIsInstalled.return}
+    {
+        if type tmux >/dev/null 2>/dev/null; then
+            echo "true";
+        else
+            echo "false";
+        fi
+    };
+    #return $tmuxIsInstalled[return][1];
+};
+
+#nop Test if we are running tintin in a tmux session.                          ;
+
+#function {inTmuxSession}
+{
+    #script {inTmuxSession.return}
+    {
+        if [ ! -z $TMUX ]; then
+            echo "true";
+        else
+            echo "false";
+        fi
+    };
+    #return $inTmuxSession[return][1];
+};
+
+#nop Get the width of an INTERACTIVE terminal using tput cols.                 ;
+
+#function {getTerminalWidth}
+{
+    #script {getTerminalWidth.return} {tput cols};
+    #return $getTerminalWidth[return][1];
+};
+
+#nop Get the height of an INTERACTIVE terminal using tput lines.               ;
+
+#function {getTerminalHeight}
+{
+    #script {getTerminalheight.return} {tput lines};
+    #return $getTerminalheight[return][1];
+};
+
+#nop Get the width of a NONINTERACTIVE tmux pane.                              ;
+
+#function {getPaneWidth}
+{
+    #script {getPaneWidth.return}
+    {
+        tmux display-message -pt %0 -F '#{pane_width}'
+    };
+    #return $getPaneWidth[return][1];
+};
+
+#nop Get the height of a NONINTERACTIVE tmux pane.                             ;
+
+#function {getPaneHeight}
+{
+    #script {getPaneHeight.return}
+    {
+        tmux display-message -pt %0 -F '#{pane_height}'
+    };
+    #return $getPaneHeight[return][1];
+};
+
+#class {lib/tmux} {close};
+
+/*
+message {TMUX} {DEBUG} {Is tmux installed:      @tmuxInstalled{}};
+message {TMUX} {DEBUG} {Is this a tmux session: @tmuxSession{}};
+*/

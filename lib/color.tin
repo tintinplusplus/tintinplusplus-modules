@@ -1,0 +1,89 @@
+#nop VSoF;
+
+/*
+    Basic console bindings for modifying the text display. This method of color
+    binding uses the colors configured in the terminal emulator. In contrast,
+    using the <xyz> and <XYZ> color codes provided by tintin is more explicit
+    and does not use the colors configured by the terminal emulator.
+*/
+
+#var {C.RESET}              {\e[0m};
+#var {C.BOLD}               {\e[1m};
+#var {C.DIM}                {\e[2m};
+
+#var {C.UNDERLINE}          {\e[4m};
+#var {C.BLINK}              {\e[5m};
+
+#var {C.REVERSE}            {\e[7m};
+#var {C.HIDDEN}             {\e[8m};
+#var {C.STRIKEOUT}          {\e[9m};
+
+#var {C.BOLD_OFF}           {\e[21m};
+#var {C.DIM_OFF}            {\e[22m};
+#var {C.UNDERLINE_OFF}      {\e[24m};
+#var {C.BLINK_OFF}          {\e[25m};
+#var {C.REVERSE_OFF}        {\e[27m};
+#var {C.HIDDEN_OFF}         {\e[28m};
+#var {C.STRIKEOUT_OFF}      {\e[29m};
+
+#var {C.FG.BLACK}           {\e[30m};
+#var {C.FG.RED}             {\e[31m};
+#var {C.FG.GREEN}           {\e[32m};
+#var {C.FG.YELLOW}          {\e[33m};
+#var {C.FG.BLUE}            {\e[34m};
+#var {C.FG.MAGENTA}         {\e[35m};
+#var {C.FG.CYAN}            {\e[36m};
+#var {C.FG.LIGHT_GRAY}      {\e[37m};
+
+#var {C.FG.DEFAULT}         {\e[39m};
+
+#var {C.BG.BLACK}           {\e[40m};
+#var {C.BG.RED}             {\e[41m};
+#var {C.BG.GREEN}           {\e[42m};
+#var {C.BG.YELLOW}          {\e[43m};
+#var {C.BG.BLUE}            {\e[44m};
+#var {C.BG.MAGENTA}         {\e[45m};
+#var {C.BG.CYAN}            {\e[46m};
+#var {C.BG.LIGHT_GRAY}      {\e[47m};
+
+#var {C.BG.DEFAULT}         {\e[49m};
+
+#var {C.FG.DARK_GRAY}       {\e[90m};
+#var {C.FG.LIGHT_RED}       {\e[91m};
+#var {C.FG.LIGHT_GREEN}     {\e[92m};
+#var {C.FG.LIGHT_YELLOW}    {\e[93m};
+#var {C.FG.LIGHT_BLUE}      {\e[94m};
+#var {C.FG.LIGHT_MAGENTA}   {\e[95m};
+#var {C.FG.LIGHT_CYAN}      {\e[96m};
+#var {C.FG.WHITE}           {\e[97m};
+
+#var {C.BG.DARK_GRAY}       {\e[100m};
+#var {C.BG.LIGHT_RED}       {\e[101m};
+#var {C.BG.LIGHT_GREEN}     {\e[102m};
+#var {C.BG.LIGHT_YELLOW}    {\e[103m};
+#var {C.BG.LIGHT_BLUE}      {\e[104m};
+#var {C.BG.LIGHT_MAGENTA}   {\e[105m};
+#var {C.BG.LIGHT_CYAN}      {\e[106m};
+#var {C.BG.WHITE}           {\e[107m};
+
+
+#nop --- [ TESTS ] ---------------------------------------------------------- ;
+
+
+#var TEST 0;
+#if { $TEST == 1 } {
+    #echo ${C.FG.RED}RED;
+    #echo ${C.FG.GREEN}GREEN;
+    #echo ${C.FG.YELLOW}YELLOW;
+    #echo ${C.FG.BLUE}BLUE;
+    #echo ${C.FG.MAGENTA}MAGENTA;
+    #echo ${C.FG.CYAN}CYAN;
+
+    #echo ${C.FG.BLACK}${C.BG.RED}RED;
+    #echo ${C.FG.BLACK}${C.BG.GREEN}GREEN;
+    #echo ${C.FG.BLACK}${C.BG.YELLOW}YELLOW;
+    #echo ${C.FG.BLACK}${C.BG.BLUE}BLUE;
+    #echo ${C.FG.BLACK}${C.BG.MAGENTA}MAGENTA;
+    #echo ${C.FG.BLACK}${C.BG.CYAN}CYAN;
+}
+#unvar TEST;

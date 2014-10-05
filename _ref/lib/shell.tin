@@ -1,0 +1,138 @@
+#nop VSoF;
+
+
+/*
+    A collection of miscellaneous tools that interact with the parent shell.
+    Additional shell related tools exist in other function-specific libraries.
+
+
+    NOTE: This library is from an old codebase and needs to be updated.
+
+    [Get Terminal Size](http://stackoverflow.com/a/263900/212343)
+*/
+
+
+
+#alias {clear} {
+    #system {tput clear};
+}
+
+
+#function {escapeString} {
+    #if {"%1" == ""} {
+        message {SHELL} {ERROR} {The function escapeString requires a file name.};
+        #var {escapeString.return} {error};
+    };
+    #else {
+        #script {escapeString.return}
+        {
+            echo "$(echo "%0" | sed 's/[^-A-Za-z0-9_]/\\&/g')"
+        };
+
+        #var {escapeString.return} {$escapeString[return][1]};
+    };
+
+    #return $escapeString[return];
+}
+
+
+
+#function {env} {
+    #if {"%1" == ""}
+    {
+        message {SHELL} {ERROR} {The function getENV requires shell environment variable.};
+        #var {getENV.return} {error};
+    };
+    #else {
+        #script {getENV.return} {echo $%1};
+
+        #if {"$getENV[return][1]" == ""}
+        {
+            #var {getENV.return} {error};
+        };
+        #else {
+            #var {getENV.return} {$getENV[return][1]};
+        };
+    };
+    #return $getENV[return];
+};
+
+#function {getPID}
+{
+    #if {"%1" == ""}
+    {
+        message {SHELL} {ERROR} {The function getPID requires process name.};
+        #var {getPID.return} {error};
+    };
+    #else {
+        #script {getPID.return}
+        {
+            ps -fC %0 | grep %0 | awk {'print $2'}
+        };
+
+        #if {"${getPID.return}[1]" == ""}
+        {
+            #var {getPID.return} {error};
+        };
+        #else {
+            #var {getPID.return} {$getPID[return][1]};
+        };
+    };
+    #return ${getPID.return};
+};
+
+#nop http://www.unixcl.com/2007/02/finding-unused-port.html;
+#nop http://www.commandlinefu.com/commands/view/7299/find-an-unused-unprivileged-tcp-port;
+#function {getPort}
+{
+    #script {getPort.return}
+    {
+        port=32768;
+        while netstat -atn | grep -q :$port;
+        do
+            port=$(expr $port + 1);
+        done;
+        echo $port;
+    };
+    #return $getPort[return][1];
+};
+
+#function {genUUID}
+{
+    #script {genUUID.return} {uuidgen};
+
+    #return $genUUID[return][1];
+};
+
+#class {lib/shell} {close};
+
+/*
+
+
+#1
+{
+    #if {"@getPID{tt++}" != "error"}
+    {
+        message {SHELL} {DEBUG} {Testing getPID{tt++} returned $getPID[return].};
+    };
+    #else
+    {
+        message {SHELL} {DEBUG} {Testing getPID{tt++} returned 'error'.};
+    };
+};
+
+#1
+{
+    #if {"@getPID{notapid}" != "error"}
+    {
+        message {SHELL} {DEBUG} {Testing getPID{tt++} returned $getPID[return].};
+    };
+    #else
+    {
+        message {SHELL} {DEBUG} {Testing getPID{notapid} returned 'error'.};
+    };
+};
+
+message {SHELL} {DEBUG} {Port: @getPort{}};
+*/
+

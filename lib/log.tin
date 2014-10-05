@@ -1,0 +1,64 @@
+#nop VSoF;
+
+
+/*
+    Our logging API is used internally to provide supplement the information
+    provided by the TinTin logs. Unfortunately we don't have the same kind
+    hooks available to us that we do in python, so we're not as dynamic or
+    robust. But we're trying.
+
+    TODO: Add support for logging messages to a separate log file.
+*/
+
+
+#nop CONFIGURATION;
+#var LOG_LEVEL 0;
+
+
+#nop LOGGING LEVELS;
+#var LOG.LEVEL.CRITICAL     3;
+#var LOG.LEVEL.ERROR        2;
+#var LOG.LEVEL.INFO         1;
+#var LOG.LEVEL.DEBUG        0;
+
+
+#nop LOGGING LEVEL COLORS;
+#var LOG.COLOR.CRITICAL     ${C.FG.BLACK}${C.BG.RED};
+#var LOG.COLOR.ERROR        $C.FG.RED;
+#var LOG.COLOR.INFO         $C.FG.GREEN;
+#var LOG.COLOR.DEBUG        $C.FG.YELLOW;
+
+#nop LOG MESSAGE API;
+#alias logmsg {
+    #if { $LOG.LEVEL.%1 >= $LOG_LEVEL } {
+
+        #showme HERE I AM;
+
+        #var    color     $LOG.COLOR.%1;
+        #var    message   %2;
+        #format level     {%-10s} %1;
+        #format timestamp {%t}    {%Y-%m-%d %H:%M:%S};
+        #format timestamp {%-20s} {$timestamp};
+
+        #showme $color$timestamp$level$message;
+
+        #unvar color;
+        #unvar message;
+        #unvar level;
+        #unvar timestamp;
+    };
+};
+
+
+#nop --- [ TESTS ] ---------------------------------------------------------- ;
+
+
+#1 {
+    #var TEST 1;
+    #if { $TEST == 1 } {
+        logmsg {DEBUG}    {This is a test debugging message.};
+        logmsg {INFO}     {This is a test info message.};
+        logmsg {ERROR}    {This is a test error message.};
+        logmsg {CRITICAL} {This is a test critical message.};
+    }
+}

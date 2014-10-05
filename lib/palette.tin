@@ -1,0 +1,52 @@
+#nop VSoF;
+
+
+/*
+
+*/
+
+
+#tab palette;
+#alias palette {
+    #var colors {};
+    #var colorchars {a;b;c;d;e;f};
+
+    #nop If the optional argument "bg" is present, use background color code  ;
+    #nop characters (A..F).                                                   ;
+    #if { "%1" == "bg" } {
+        #var colorchars {A;B;C;D;E;F};
+    };
+
+    #foreach {$colorchars} {x} {
+
+        #nop If we're writing background colors, prepend a black foreground   ;
+        #nop code to each row.                                                ;
+
+        #if { "%1" == "bg" } {
+            #var colors[$x] <aaa>;
+        };
+
+        #foreach {$colorchars} {y} {
+            #foreach {$colorchars} {z} {
+
+                #nop For each color starting with $x, append the color code   ;
+                #nop to the colors.x string.                                  ;
+                #var colors[$x] {$colors[$x]<$x$y$z>$x$y$z };
+
+            };
+        };
+    };
+
+    #foreach {$colorchars} {i} {
+
+        #showme {$colors[$i]};
+    };
+
+    #nop Cleanup our temporary variables.;
+    #unvar i;
+    #unvar x;
+    #unvar y;
+    #unvar z;
+    #unvar colorchars;
+    #unvar colors;
+}

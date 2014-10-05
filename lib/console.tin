@@ -1,0 +1,18 @@
+#nop VSoF;
+
+
+/*
+    Utilities for working with the console.
+*/
+
+#nop Retrieve the screen's columns and rows. ;
+
+#format {COLUMNS}           {%C};
+#format {ROWS}              {%R};
+
+#nop Clear the screen.;
+#alias {clear} {
+    #system {tput clear};
+};
+
+

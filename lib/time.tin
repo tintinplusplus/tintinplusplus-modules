@@ -1,0 +1,54 @@
+#nop VSoF;
+
+
+/*
+    Time related utilities.
+
+    [Calculating Duration](http://tintin.sourceforge.net/board/viewtopic.php?t=2096)
+*/
+
+
+#nop Return the current date.;
+#function date {
+    #format result {%t} {%Y-%m-%d};
+}
+
+
+#nop Return the current time.;
+#function time {
+    #format result {%t} {%T};
+}
+
+
+#function timestamp {
+    #format result {%t} {%Y-%m-%d %T};
+}
+
+
+#function duration {
+    #if { "%1" == "" || "%2" == "" } {
+        msg {ERROR} USAGE: @duration{{start}{end}};
+    }
+
+    #else {
+        #math result {%2 - %1};
+    }
+};
+
+
+#nop --- [ TEST ] ----------------------------------------------------------- ;
+
+
+#var TEST 1;
+#if { "$TEST" == "1" || "$TEST_ALL" == 1 } {
+    msg {DEBUG} {TEST: lib/time.tin};
+
+    #format timestamp {%t} {%U};
+    #showme Timestamp: $timestamp;
+
+    logmsg {DEBUG} {Date:     @date{}};
+    logmsg {DEBUG} {Time:     @time{}};
+    logmsg {DEBUG} {DateTime: @timestamp{}};
+    logmsg {DEBUG} {Duration: @duration{{$START_TIME{}} {@timestmap{}}}};
+}
+#unvar TEST;

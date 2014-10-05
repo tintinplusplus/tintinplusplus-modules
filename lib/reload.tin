@@ -1,0 +1,14 @@
+#nop VSoF;
+
+
+/*
+    Destroy the entire configuration and reload rc.tin.
+*/
+
+
+#alias reload {
+    #system (tput clear);
+    #help greeting;
+    #kill {all};
+    #read rc.tin;
+}

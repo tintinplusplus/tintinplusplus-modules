@@ -1,0 +1,11 @@
+#nop VSoF;
+
+
+/*
+
+*/
+
+
+#format  MENUBAR %+80s;
+#replace MENUBAR { } {-};
+#var     MENUBAR ${C.FG.BLUE}$MENUBAR;

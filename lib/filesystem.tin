@@ -1,0 +1,118 @@
+#nop VSoF;
+
+
+/*
+    Utilities for working with the file system.
+*/
+
+
+#nop Return the path of the current directory. ;
+#function pwd {
+    #script {result} {pwd};
+}
+
+
+#nop List the files in the specified path (default is pwd). ;
+#function ls {
+    #script {result} {ls %1};
+}
+
+
+#alias ls {
+    #foreach {@ls{%1}} {fsobj} {
+        #showme $fsobj
+    }
+}
+
+
+#nop Returns 1 if the object is a directory, 0 if not. ;
+#function {isdir} {
+    #if {"%1" == ""} {
+        msg {ERROR} {USAGE: @isdir{path}};
+    };
+
+    #else {
+        #script {result} {
+            if [ -d %0 ]; then
+                echo true;
+            else
+                echo false;
+            fi
+        }
+    }
+}
+
+
+#nop Return 1 if the object is file, 0 if not. ;
+#function {isfile} {
+    #if {"%1" == ""} {
+        msg {ERROR} {USAGE: @isfile{path}};
+    }
+
+    #else {
+        #script {result} {
+            if [ -f %0 ]; then
+                echo true;
+            else
+                echo false;
+            fi
+        }
+    }
+}
+
+
+#nop Return the type of a file if it exists. ;
+#function {filetype} {
+    #if {"%1" == ""}
+    {
+        msg {ERROR} {USAGE: @filetype{path}};
+    }
+
+    #else {
+        #script {result} { file %1; };
+    }
+}
+
+
+#nop Creates a new directory if it doesn't already exist. ;
+#function {mkdir}
+{
+    #if { "%1" == "" } {
+        message {SHELL} {ERROR} {The function mkdir requires a directory name.};
+    }
+
+    #else {
+        #if {"@isdir{%1}" == "1" } {
+            msg {ERROR} {MKDIR: The directory %1 already exists.};
+        }
+
+        #else {
+            #script {result} {
+                mkdir -p %1;
+            }
+        }
+    }
+}
+
+
+#nop Creates a temporary directory and returns the name. ;
+#function {mktemp} {
+    #script {result} {mktemp};
+}
+
+#unvar LIB;
+
+
+#var TEST 0;
+#if { "$TEST" == "1" || "$TEST_ALL" == 1 } {
+    msg {DEBUG} {TEST: lib/fs.tin};
+
+    message {FILE} {INFO} {isdir(main.tin):     @isdir{main.tin}};
+    message {FILE} {INFO} {isfile(logs):        @isdir{logs}};
+    message {FILE} {INFO} {isfile(main.tin):    @isfile{main.tin}};
+    message {FILE} {INFO} {isfile(logs):        @isfile{logs}};
+    message {FILE} {INFO} {fileType(main.tin):  @filetype{main.tin}};
+    message {FILE} {INFO} {fileType(logs):      @filetype{logs}};
+}
+
+

@@ -1,0 +1,30 @@
+#nop VSoF;
+
+
+/*
+    String manipulation.
+*/
+
+
+#nop Return a string containing the %2 repeated %1 times.;
+#function repchar {
+    #format result %+%1s;
+    #replace result { } %2;
+}
+
+
+#nop Return the length of a string.;
+#function strlen {
+    #format result {%L} {%0};
+}
+
+
+#nop Returns the length of the longest string.;
+#function longestString {
+    msg {DEBUG} {ALIAS: menu %0};
+
+    #if {"%1" == "" } {
+        msg {ERROR} {Usage: @longestString \{table\}};
+    }
+}
+
