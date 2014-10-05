@@ -36,7 +36,7 @@ To include the shared modules in your own code, add the following to your existi
 
     #var MODULES.PATHS.ROOT {shared};
     #var MODULES.PATHS.CFG  {cfg};
-    #var MODULES.PATHS.DATA {var};
+    #var MODULES.PATHS.DATA {data};
     #var MODULES.PATHS.TMP  {/tmp/tintin};
 
     #nop A table containing the modules we want to load. Set to 1 for enable, 0 for disable.;
