@@ -1,0 +1,180 @@
+#nop VSoF;
+
+#nop --- [ COMMAND FILES ] -------------------------------------------------- ;
+
+/*
+    Except for rc.tin, our command files are stored in four directories:
+
+        libs/       Small utilities, for example string & time manipulation.
+        modules/    Generic utilities, for example our mapper API.
+        profiles/   Specific utilities, for example mud specific settings.
+        routines/   On demand behaviors, for example a maze navigator.
+
+    The name of each category and the corresponding path is configured in the
+    initialization section and stored in the CLASSES variable.
+
+    When we startup our library, we find all these files and map them into our
+    tables used by the API, so that we can quickly load and unload them, with
+    error checking and the correct levels of verbosity.
+*/
+
+#var CMDFILES {};
+#foreach {$CMDFILE_GRPS[]} {lGroup} {
+
+    #nop Retrieve the group's path.                                           ;
+    #var lGroupPath $CMDFILE_GRPS[$lGroup];
+
+    #script {
+        for lCmdfilePath in $(find $lGroupPath -type f -name "*.tin"); do
+            lCmdfile=$(echo $lCmdfilePath | sed -e 's|'$lGroupPath/'||');
+            lCmdfile=$${lCmdfile%.*};
+
+            echo "#var CMDFILES[$lGroup][$lCmdfile][PATH]   $lCmdfilePath;";
+            echo "#var CMDFILES[$lGroup][$lCmdfile][LOADED] 0;";
+        done
+    };
+}
+#unvar lGroup;
+#unvar lGroupPath;
+
+/*
+    List our command files (from a specific command file group).
+*/
+
+
+#tab _list;
+#alias _list {
+    #var lUsage {USAGE: _list {TYPE}};
+
+    #format {lType} {%u} {%1};
+
+    #if { "%1" == "" } {
+        _log {ERROR} {$lUsage};
+    };
+
+    #elseif { &CMDFILES[$lType] == 0} {
+        _log {ERROR} {%1 is not a valid command file type.};
+    };
+
+    #else {
+        #echo $MENUBAR;
+        #echo {%-30s%-40s%+10s} {Command File} {Path} {Loaded};
+        #echo $MENUBAR;
+
+        #foreach {$CMDFILES[$lType][]} {cmdfile} {
+            #var lPath   $CMDFILES[$lType][$cmdfile][PATH];
+            #var lLoaded $CMDFILES[$lType][$cmdfile][LOADED];
+            #echo {%-30s%-40s%+10s} {$cmdfile} {$lPath} {$lLoaded};
+        };
+
+        #echo $MENUBAR;
+    };
+    #unvar lUsage;
+    #unvar lType;
+    #unvar lPath;
+    #unvar lLoaded;
+}
+
+
+/*
+    We always want to confirm whether or not our command files were read
+    successfully, but tintin doesn't have any options to enforce this behavior
+    (or even display meaningful messages when it fails). TinTin also won't
+    display configuration messages when reading a command file through an alias
+    even when #CONFIG {VERBOSE} {ON} is enabled.
+
+    We enforce this by creating our own load API, which wraps the #read command.
+    This alias performs two important functions.
+
+    First, if we have set $TT_CFG_VERBOSE to 1, then the #read command will be
+    prefixed with a #line verbose, forcing the configuration output to be
+    displayed when reading the file.
+
+    Second, we enforce that our files are read. If the file is read correctly,
+    we emit a log message and update our class tables appropriately. However,
+    if the file fails to load, we emit an error log message and kill the
+    program. In this way, we don't cluelessly chug along without loading some
+    API we _thought_ was working, and run into errors in some other class
+    that depends on it.
+
+    To enforce that files are read, we initialize $LOADED to 0 in the load
+    alias. It is then the responsibility of the command file to set this
+    to 1, which notifies us that the command file was loaded successfully.
+*/
+
+#tab _load;
+#alias _load {
+    #var lUsage {USAGE: _load {TYPE} {NAME}};
+
+    #if { "%1" == "" || "%2" == "" } {
+        _log {ERROR} {$lUsage};
+    };
+
+    #elseif { "CMDFILES[%1][%2]" == "" } {
+        _log {ERROR} {The command file %1 does not exist.};
+    };
+
+    #elseif { $%1[%2][LOADED] == 1 } {
+        _log {ERROR} {The command file %1 is already loaded.};
+    };
+
+    #else {
+        _log {DEBUG} {_load: Attempting to load %1.};
+
+        #var lGroup         %1;
+        #var lName          %2;
+        #var lPath          CMDFILES[$lGroup][$lName][PATH];
+
+        #var CMDFILE_LOADED 0;
+
+        #if { $TT_CFG_VERBOSE == 1 } {
+            #read %1
+        };
+
+        #else {
+            #line verbose #read %1
+        };
+
+        #if { $CMDFILE_LOADED == 0 } {
+            msg {ERROR} {_load: Failed to read %0.};
+        };
+
+        #else {
+            msg {INFO} {_load: Reading %0 succeeded.};
+            #zap;
+        };
+
+        #unvar lUsage;
+        #unvar lGroup;
+        #unvar lName;
+        #unvar lPath;
+        #unvar CMDFILE_LOADED;
+    }
+    #unvar lUsage;
+}
+
+/*
+
+*/
+
+#tab _kill;
+#alias _kill {
+    #var lUsage {USAGE: _kill {TYPE} {NAME}};
+
+    #if { "%1" == "" || "%2" == "" } {
+        _log {ERROR} {$lUsage};
+    };
+
+
+    #unvar lUsage;
+}
+
+/*
+
+*/
+
+#tab _reload;
+#alias _reload {
+    #var lUsage {USAGE: _reload {TYPE} {NAME}};
+    #unvar lUsage;
+}

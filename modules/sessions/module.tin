@@ -1,0 +1,65 @@
+#nop NSoF;
+
+#nop --- [ SESSIONS ] ------------------------------------------------------- ;
+
+/*
+    Initialize the sessions.
+*/
+
+#var    SESSIONS            {};
+#read   data/session/sessions.tin;
+
+#foreach {$SESSIONS[]} {session} {
+    #var SESSIONS[$session][CONNECTED] 0;
+}
+#unvar lSession;
+
+/*
+    List our sessions.
+*/
+
+#tab _sessions;
+#alias _sessions {
+    #echo $MENUBAR;
+    #echo {%-30s%-40s%+10s} {Session} {Description} {Connected};
+    #echo $MENUBAR;
+
+    #foreach {$SESSIONS[]} {lSession} {
+        #format lName {%n} {$lSession};
+        #format lDescription {%n} {$SESSIONS[$lSession][$SESSION_DESCRIPTION]};
+        #echo {%-30s%-40s%+10s} {$lName} {$lDescription} {$SESSIONS[$lSession][CONNECTED]};
+    };
+
+    #echo $MENUBAR;
+
+    #unvar lName;
+    #unvar lSession;
+}
+
+/*
+    Connect a session.
+*/
+
+#tab _connect;
+#alias _connect {
+    #var lUsage {USAGE: _connect {session}};
+
+    #if { "%1" == "" } {
+        _log {ERROR} {$lUsage};
+    };
+
+    #unvar lUsage;
+}
+
+/*
+    Disconnect a session.
+*/
+
+#tab _disconnect;
+#alias _disconnect {
+    #var lUsage {USAGE: _disconnect {session}};
+
+    #if { "%1" == "" } {
+        _log {ERROR} {$lUsage};
+
+    };
