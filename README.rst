@@ -34,7 +34,7 @@ Usage
 The cfg directory includes sample configuration files for the included modules. These should be copied to your own cfg directory (outside of the repository), and modified for your personal use.
 To include the shared modules in your own code, add the following to your existing configuration::
 
-    #var MODULES.PATHS.ROOT {shared};
+    #var MODULES.PATHS.ROOT {share};
     #var MODULES.PATHS.CFG  {cfg};
     #var MODULES.PATHS.DATA {data};
     #var MODULES.PATHS.TMP  {/tmp/tintin};
