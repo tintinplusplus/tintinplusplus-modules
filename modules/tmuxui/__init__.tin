@@ -1,0 +1,50 @@
+#nop VSoF;
+
+/*
+    @Author:        Nathan Farrar
+    @Email:         nathan.farrar@gmail.com
+    @Website:       http://crunk.io/
+    @Module:        Tmux
+    @Description:   Provides an API for managing the tmux UI.
+
+    Description
+    -----------
+    Provides an API for managing the tmux UI.
+*/
+
+
+#nop --- [ PROLOGUE ] ------------------------------------------------------- ;
+
+#nop These commands are included for framework compatibility and should not   ;
+#nop be modified. These values are automatically set up by the the frameworks ;
+#nop command file loader. If they are not defined, then we have loaded this   ;
+#nop file outside of the framework and we define these settings on our own.   ;
+
+#if { $CMFILE_LODED == 0 }  {
+    #var CMDFILE_NAME tmux;
+    #var CMDFILE_PATH modules/tmux;
+    #var CMDFILE_STANDALONE 1;
+}
+
+#else {
+    #var CMDFILE_LOADED 1;
+}
+
+#class $CMDFILE_NAME kill;
+#class $CMDFILE_NAME open;
+
+
+#nop --- [ MODULE ] --------------------------------------------------------- ;
+
+#nop N/A;
+
+
+#nop --- [ PROLOGUE ] ------------------------------------------------------- ;
+
+#class $CMDFILE_NAME close;
+
+#if { $CMDFILE_STANDALONE == 1 } {
+    #unvar CMDFILE_NAME;
+    #unvar CMDFILE_PATH;
+    #unvar CMDFILE_STANDALONE;
+}

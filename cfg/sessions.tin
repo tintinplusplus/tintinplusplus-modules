@@ -1,0 +1,22 @@
+#nop VSoF;
+
+
+/*
+    A sample session configuration file for the guest account on NannyMUD.
+*/
+
+
+#var SESSIONS
+{
+    {1} {
+        {NAME}      {guest}
+        {HOST}      {nannymud.lysator.liu.se}
+        {PORT}      {2000}
+        {PASSWORD}  {}
+        {GUILD}     {adventurer}
+        {MAP_START} {1}
+        {CMDFILES}  {
+                    {1}{nannymud/default}
+        }
+    }
+}

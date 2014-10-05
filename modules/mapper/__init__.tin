@@ -1,0 +1,55 @@
+#nop VSoF;
+
+/*
+    @Author:        Nathan Farrar
+    @Email:         nathan.farrar@gmail.com
+    @Website:       http://crunk.io/
+    @Module:        Map
+    @Description:   Provides an API for managing the map API.
+
+    Description
+    -----------
+    Provides an API for managing the map API.
+
+    http://tintin.sourceforge.net/board/viewtopic.php?t=1961
+    https://home.comcast.net/~thilos2/tintin.auto.roomname.writer.tin
+
+*/
+
+
+#nop --- [ PROLOGUE ] ------------------------------------------------------- ;
+
+#nop These commands are included for framework compatibility and should not   ;
+#nop be modified. These values are automatically set up by the the frameworks ;
+#nop command file loader. If they are not defined, then we have loaded this   ;
+#nop file outside of the framework and we define these settings on our own.   ;
+
+#if { $CMDFILE_LOADED == 0 }  {
+    #var CMDFILE_NAME map;
+    #var CMDFILE_PATH modules/map;
+    #var CMDFILE_STANDALONE 1;
+}
+
+#else {
+    #var CMDFILE_LOADED 1;
+}
+
+#class $CMDFILE_NAME kill;
+#class $CMDFILE_NAME open;
+
+
+#nop --- [ MODULE ] --------------------------------------------------------- ;
+
+
+#nop N/A;
+
+
+#nop --- [ PROLOGUE ] ------------------------------------------------------- ;
+
+#class $CMDFILE_NAME close;
+
+#if { $CMDFILE_STANDALONE == 1 } {
+    #unvar CMDFILE_NAME;
+    #unvar CMDFILE_PATH;
+    #unvar CMDFILE_STANDALONE;
+}
