@@ -3,7 +3,7 @@ TinTin++ Modules
 ================
 The included modules are super alpha and currently for demonstration purposes only.
 
-Note: Some of what is covered below is not yet finished or committed to the repository. This documentation is meant to describe how things _will_ work.
+Note: Some of what is covered below is not yet finished or committed to the repository. **This documentation is meant to describe how modules are intended to work.**
 
 -----
 About
@@ -24,7 +24,7 @@ Installation
 There are several ways to add the modules to your existing library.
 NOTE: Because TinTin user's are not necessarily comfortable with git, I've added explicit setup instructions.
 
-Method 1 (Static Archive - best for users not comfortable with git)::
+**Installing as a Static Archive (best for users not comfortable with git)**::
 
     cd $MUDFILES
     wget https://github.com/tintinplusplus/tintinplusplus-modules/archive/master.zip
@@ -35,28 +35,29 @@ Method 1 (Static Archive - best for users not comfortable with git)::
 
 The repository will be static and not managed through a version control tool. You'll need to manually check for updates and replace this directory as necessary. In the future, I will work on including a module that will allow users to update the repository through a command that can be run directly in TinTin++.
 
-Method 2 (Nested, Untracked Git Repository - Best for Non-Contributing Users)::
+**Installing as a Standalone Git Repository**::
 
     cd $MUDFILES
     git clone https://github.com/tintinplusplus/tintinplusplus-modules.git share
-    echo "\n# Do not track modules repository"
+
+If your existing codebase is already a git repository, then you'll want to make it ignore the 'share' directory::
+
+    echo "\n# Do not track share directory"
     echo "share\n" >> .gitignore
-
-If you're using this method, it's assumed that you won't be modifying the contents of your share directory.
-If for some reason your modules repository is modified and you want to discard the changes, you can issue::
-
-    cd share
-    git fetch origin
-    git reset --hard origin/master
-
-NOTE: This is destructive and will discard any changes you made to the modules (share directory).
 
 To update your modules (share directory)::
 
     cd share
     git pull
 
-Method 3 (A Submodule with Branch Tracking - Best for Contributing Users)::
+If the share directory has changes that should be discarded when updating, you can discard those changes and update to the latest release with::
+
+    cd share
+    git fetch origin
+    git reset --hard origin/master
+
+
+**Installing as a Submodule with Branch Tracking (Best for Contributors)**::
 
     cd $MUDFILES
     git submodule add git@github.com:tintinplusplus/tintinplusplus-modules.git share
@@ -65,8 +66,7 @@ Method 3 (A Submodule with Branch Tracking - Best for Contributing Users)::
     cd .. && git add .gitmodules share
     git commit .gitmodules share -m 'added share as tracked submodule'
 
-This configures the modules repository (share directory) as a submodule in your existing git repository, with branch tracking.
-The branch tracking assumes that you're intending to commit directly to master, which is what is happening now as the modules repository is early alpha and not production ready.
+This configures the modules repository (share directory) as a submodule in your existing git repository, with branch tracking (without branch tracking, the head will become detached every time a change is made). The branch tracking assumes that you're intending to commit directly to master, which is what is happening now as the modules repository is early alpha and there is not yet a production release.
 
 
 -----
