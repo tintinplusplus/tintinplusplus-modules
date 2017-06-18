@@ -28,3 +28,31 @@
     }
 }
 
+#FUNCTION {cut}
+{
+	#nop {Can cut with specified field and delimiter, defaults are space for the delimiter and 1 for field.};
+	#variable {functionCut.fieldIndex} {1};
+	#variable {functionCut.string} {%0};
+	#regexp {${functionCut.string}} {{.*}-d {.} } {#variable {functionCut.delimiter} {&2};#replace {functionCut.string} {-d &2 }};
+	#else
+	{
+		#variable {functionCut.delimiter} { }
+	};
+	#regexp {${functionCut.string}} {{.*}-f {\d+} } {#variable {functionCut.field} {&2};#replace {functionCut.string} {-f &2 }};
+	#else
+	{
+		#variable {functionCut.field} {1}
+	};
+	#variable {result} {};
+	#parse {${functionCut.string}} {character}
+	{
+		#if {"$character" == "${functionCut.delimiter}"}
+		{
+			#math {functionCut.fieldIndex} {${functionCut.fieldIndex} + 1}
+		};
+		#if {${functionCut.fieldIndex} == ${functionCut.field} && "${character}" != "${functionCut.delimiter}"}
+		{
+			#variable {result} {${result}${character}}
+		}
+	}
+}
