@@ -1,0 +1,28 @@
+#ALIAS {^/plugin %s{disable|enable} %s{([\w-_])*}$}
+{
+	#if {"%2" == "enable"}
+	{
+		#script {if [ -h "plugins-enabled/%4.tin" ]; then echo "#echo {Plugin '%4' is already enabled.}";elif [ ! -e "plugins/%4.tin" ]; then echo "#echo {Plugin '%4' not found.}";else if [ ! -d "plugins-enabled" ]; then mkdir "plugins-enabled";fi;ln -s "$(readlink -f $0 | sed -e 's/\/sh$//')/plugins/%4.tin" "$(readlink -f $0 | sed -e 's/\/sh$//')/plugins-enabled/%4.tin";echo "#class {%4} {read} {plugins-enabled/%4.tin};#echo {Plugin '%4' enabled.}";fi}
+	};
+	#else
+	{
+		#script {if [ ! -h "plugins-enabled/%4.tin" ]; then echo "#echo {Plugin '%4' is not enabled.}";else unlink "plugins-enabled/%4.tin";rmdir "plugins-enabled" 2> /dev/null;echo "#class {%4} {kill};#echo {Plugin '%4' disabled.}";fi}
+	}
+}
+{8}
+
+#ALIAS {^/plugin %slist$}
+{
+	#system {echo "Available plugins:";for bashVariableX in plugins/*.tin ; do basename "$bashVariableX" ".tin";done}
+}
+{9}
+
+#EVENT {PROGRAM START}
+{
+	#nop {Load plugins, if any. Each plugin is loaded in its own class.};
+	#script {if [ -d "plugins-enabled" ]; then for bashVariableX in plugins-enabled/*.tin ; do echo "#class {$(basename "$bashVariableX" ".tin")} {read} {$bashVariableX}";done;fi}
+}
+
+#TAB              {/plugin disable }
+#TAB              {/plugin enable }
+#TAB              {/plugin list }
